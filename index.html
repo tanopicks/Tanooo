@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tano | Análisis y Apuestas de Béisbol LMB & MLB</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Spinner de Carga Global -->
+  <div id="global-spinner" class="spinner-overlay" style="display: none;">
+    <div class="spinner-container">
+      <div class="spinner-ring"></div>
+      <p id="spinner-message">Cargando la base de datos de Tano...</p>
+    </div>
+  </div>
+
+  <!-- Fondo con degradado animado y partículas -->
+  <div class="bg-blur"></div>
+  
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <svg class="header-logo" viewBox="0 0 100 100" width="40" height="40">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#00ff88" stroke-width="4"/>
+          <path d="M18,32 C35,45 65,45 82,32" fill="none" stroke="#ff3366" stroke-width="2" stroke-dasharray="2,2"/>
+          <path d="M18,68 C35,55 65,55 82,68" fill="none" stroke="#ff3366" stroke-width="2" stroke-dasharray="2,2"/>
+          <circle cx="35" cy="45" r="1.5" fill="#ff3366"/>
+          <circle cx="65" cy="45" r="1.5" fill="#ff3366"/>
+          <circle cx="35" cy="55" r="1.5" fill="#ff3366"/>
+          <circle cx="65" cy="55" r="1.5" fill="#ff3366"/>
+        </svg>
+        <div class="brand">
+          <h1>TANO <span>PREDICTOR</span></h1>
+          <p>Analítica y Algoritmos Sabermétricos LMB / MLB</p>
+        </div>
+      </div>
+      <div class="header-status" style="display: flex; align-items: center; gap: 0.6rem;">
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="btn-theme-toggle">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span id="theme-btn-lbl">Modo Claro</span>
+        </button>
+        <div class="league-switcher">
+          <button class="btn-league active" id="btn-lmb" onclick="changeLeague('LMB')">LMB</button>
+          <button class="btn-league" id="btn-mlb" onclick="changeLeague('MLB')">MLB</button>
+        </div>
+        <span class="badge badge-lmb" id="league-badge">Liga Mexicana de Béisbol</span>
+        <span class="badge badge-live" id="lmb-date">2026</span>
+      </div>
+    </header>
+
+    <!-- Barra de Sincronización y Fecha -->
+    <section class="sync-bar card mb-4">
+      <div class="sync-left">
+        <svg class="icon text-primary" viewBox="0 0 24 24" width="16" height="16" style="margin-right: 0.4rem;">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"/>
+        </svg>
+        <span id="sync-status-msg" class="status-msg text-muted">Sincronizando con base de datos en vivo...</span>
+        <span style="background: rgba(0,255,136,0.1); color: var(--primary-neon); border: 1px solid rgba(0,255,136,0.2); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 0.75rem; font-family: var(--font-mono); font-weight: 700; display: inline-flex; align-items: center; gap: 0.2rem;">
+          Act: <span id="auto-update-countdown">2:00</span>
+        </span>
+      </div>
+      <div class="sync-right">
+        <label for="game-date-input">Fecha:</label>
+        <input type="date" id="game-date-input">
+      </div>
+    </section>
+
+    <!-- Carrusel de Partidos del Día -->
+    <section class="games-section card mb-4">
+      <div class="panel-header" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem;">
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+          <path d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V8h14v10z" fill="currentColor"/>
+        </svg>
+        <h2>Juegos Programados LMB</h2>
+      </div>
+      <div id="games-carousel" class="games-carousel-container">
+        <!-- Rellenado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Main Grid Layout -->
+    <main class="app-grid">
+      <!-- Columna Izquierda: Análisis de Bateo contra el Abridor -->
+      <section class="panel panel-left card">
+        <div class="panel-header">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+          </svg>
+          <h2>Bateo vs Abridor Proyectado</h2>
+        </div>
+        
+        <div class="tabs">
+          <button id="btn-bvp-vis" class="tab-btn active" onclick="switchBvpTab('vis')">Vis vs Abr Loc</button>
+          <button id="btn-bvp-loc" class="tab-btn" onclick="switchBvpTab('loc')">Loc vs Abr Vis</button>
+        </div>
+
+        <!-- Panel de Matchup -->
+        <div id="bvp-content-area" class="bvp-matchup-container">
+          <!-- Se renderiza dinámicamente con JS -->
+        </div>
+      </section>
+
+      <!-- Columna Central: Comparativa y Configuración del Modelo -->
+      <section class="panel panel-center card">
+        <div class="panel-header">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
+          </svg>
+          <h2>Cara a Cara & Calibración</h2>
+        </div>
+
+        <!-- Selectores de Equipo y Lanzador (Cargados desde la API) -->
+        <div class="team-selectors">
+          <div class="selector-box">
+            <label for="select-team-a">Equipo Local</label>
+            <select id="select-team-a" onchange="changeActiveTeams()"></select>
+            
+            <label for="select-pitcher-a" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.5rem;">Lanzador Abridor</label>
+            <select id="select-pitcher-a" onchange="changeActivePitchers()"></select>
+          </div>
+          <div class="versus">VS</div>
+          <div class="selector-box">
+            <label for="select-team-b">Equipo Visitante</label>
+            <select id="select-team-b" onchange="changeActiveTeams()"></select>
+            
+            <label for="select-pitcher-b" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.5rem;">Lanzador Abridor</label>
+            <select id="select-pitcher-b" onchange="changeActivePitchers()"></select>
+          </div>
+        </div>
+
+        <!-- Sliders de Ponderación -->
+        <div class="sliders-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="margin: 0;">Ponderación del Modelo</h3>
+            <label class="auto-calc-label" style="font-size: 0.75rem; font-weight: 700; color: var(--primary-neon); cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+              <input type="checkbox" id="auto-calibrate" checked onchange="toggleAutoCalibrate()"> Auto-Calibrar
+            </label>
+          </div>
+          <p class="slider-desc" id="weights-desc">Calibrando ponderaciones según el enfrentamiento...</p>
+          
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Lanzador Abridor (ERA, WHIP, FIP, SO/BB)</span>
+              <span id="val-w-abridor">40%</span>
+            </div>
+            <input type="range" id="w-abridor" min="0" max="100" value="40" oninput="updateWeights()" disabled>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Ofensiva del Equipo (AVG, OPS, Runs, HR)</span>
+              <span id="val-w-bateo">30%</span>
+            </div>
+            <input type="range" id="w-bateo" min="0" max="100" value="30" oninput="updateWeights()" disabled>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Pitcheo General/Relevo (ERA, WHIP, AVG en contra)</span>
+              <span id="val-w-pitcheo">20%</span>
+            </div>
+            <input type="range" id="w-pitcheo" min="0" max="100" value="20" oninput="updateWeights()" disabled>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Ventaja de Localía</span>
+              <span id="val-w-localia">10%</span>
+            </div>
+            <input type="range" id="w-localia" min="0" max="100" value="10" oninput="updateWeights()" disabled>
+          </div>
+        </div>
+
+        <!-- Tabla Comparativa Detallada -->
+        <div class="comparison-details">
+          <h3>Comparativa Detallada de Estadísticas</h3>
+          
+          <div class="table-container">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th id="h-team-a">Equipo A</th>
+                  <th>Métrica</th>
+                  <th id="h-team-b">Equipo B</th>
+                </tr>
+              </thead>
+              <tbody id="comparison-tbody">
+                <!-- Se rellena dinámicamente desde JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Columna Derecha: Probabilidades y Slip de Apuestas -->
+      <section class="panel panel-right card card-accent">
+        <div class="panel-header header-accent">
+          <svg class="icon text-primary" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/>
+          </svg>
+          <h2>Predicción & Apuesta</h2>
+        </div>
+
+        <!-- Medidor Circular de Victoria -->
+        <div class="victory-prob-widget">
+          <div class="radial-gauge-container">
+            <svg class="radial-gauge" viewBox="0 0 120 120">
+              <circle class="gauge-bg" cx="60" cy="60" r="50"/>
+              <circle class="gauge-fill" id="gauge-fill-a" cx="60" cy="60" r="50"/>
+            </svg>
+            <div class="gauge-content">
+              <span class="prob-num" id="prob-percentage-a">50%</span>
+              <span class="prob-label" id="prob-label-a">Equipo A</span>
+            </div>
+          </div>
+          
+          <div class="prob-bars-comparison">
+            <div class="team-bar-lbl" id="lbl-prob-bar-a">Equipo A: 50%</div>
+            <div class="prob-bar-track">
+              <div class="prob-bar-fill" id="bar-fill-a" style="width: 50%;"></div>
+            </div>
+            <div class="team-bar-lbl text-right mt-1" id="lbl-prob-bar-b">Equipo B: 50%</div>
+            <div class="prob-bar-track">
+              <div class="prob-bar-fill bg-secondary" id="bar-fill-b" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Betting Slip (Ticket de Apuesta) -->
+        <div class="betting-slip">
+          <div class="slip-header">
+            <h3>TICKET DE APUESTA SUGERIDO</h3>
+            <span class="conf-badge" id="bet-confidence">ALTA CONFIANZA</span>
+          </div>
+
+          <div class="slip-bets">
+            <!-- Ganador Directo -->
+            <div class="slip-item">
+              <div class="bet-type">A Ganador (Moneyline)</div>
+              <div class="bet-pick" id="bet-pick-ml">Diablos Rojos</div>
+              <div class="bet-odds" id="bet-odds-ml">Prob: 65%</div>
+            </div>
+
+            <!-- Run Line -->
+            <div class="slip-item">
+              <div class="bet-type">Hándicap (Run Line)</div>
+              <div class="bet-pick" id="bet-pick-rl">Diablos Rojos -1.5</div>
+              <div class="bet-odds">Ventaja Proyectada</div>
+            </div>
+
+            <!-- Over / Under -->
+            <div class="slip-item border-none">
+              <div class="bet-type">Total de Carreras (O/U)</div>
+              <div class="bet-pick">
+                <span id="bet-pick-ou">Over 9.5</span>
+                <div class="ou-input-inline">
+                  Línea Casas: <input type="number" id="ou-odds-line" step="0.5" value="9.5" onchange="recalculateAnalysis()">
+                </div>
+              </div>
+              <div class="bet-odds" id="bet-odds-ou">Pred: 10.8 carreras</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Justificación en Texto -->
+        <div class="bet-justification">
+          <h3>Justificación del Análisis</h3>
+          <p id="justification-text">
+            Carga datos estadísticos para ver un desglose completo del modelo analítico.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 HomeRun Predictor. Desarrollado con Inteligencia Artificial Sabermétrica.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="predictor.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
